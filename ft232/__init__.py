@@ -20,7 +20,7 @@ try:
     from .d2xx import D2xx as Ft232    
     from .d2xx import D2XXException as Ft232Exception
 
-except OSError:
+except (OSError, FileNotFoundError):
     from .libftdi import list_devices
     from .libftdi import LibFtdi as Ft232    
     from .libftdi import LibFtdiException as Ft232Exception
