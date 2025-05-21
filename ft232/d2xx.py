@@ -26,9 +26,12 @@ from serial import (FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS, PARITY_NONE,
 
 if platform.system().startswith("Windows"):
     try:
-        d2xx = c.windll.ftd2xx
+        #d2xx = c.windll.ftd2xx
+        d2xx = c.windll.LoadLibrary("ftd2xx64.dll")
     except AttributeError:
-        d2xx = c.cdll.ftd2xx
+        #d2xx = c.cdll.ftd2xx
+        d2xx = c.windll.LoadLibrary("ftd2xx.dll")
+
 elif platform.system().startswith("Linux"):
     d2xx = c.cdll.LoadLibrary("libftd2xx.so")
 elif platform.system().startswith("Darwin"):
