@@ -18,6 +18,7 @@
 #
 
 import platform
+import os
 import io
 import ctypes as c
 import serial
@@ -25,18 +26,33 @@ from serial import (FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS, PARITY_NONE,
                     PARITY_EVEN, PARITY_ODD, STOPBITS_ONE, STOPBITS_TWO)
 
 if platform.system().startswith("Windows"):
-    if platform.machine().endswith('64'):
-        ftd2xx_filenames = ["ftd2xx64.dll", "FTD2XX64.DLL"]
-    else:
-        ftd2xx_filenames = ["ftd2xx.dll", "FTD2XX.DLL"]
-    for lib in ftd2xx_filenames:
+    try:
+        d2xx = c.WinDLL("FTD2XX.dll")
+    except OSError as e:
+        pass
+    
+    if d2xx is None:
+        dll_dir = None
         try:
-            d2xx = c.WinDLL(lib)
-            break
-        except FileNotFoundError:
-            continue
-    else:
-        raise FileNotFoundError("Unable to load .dll file for ftd2xx! Please make sure it is available as at least one of the following filenames:\n" + "\n".join(ftd2xx_filenames))
+            dll_dir = os.add_dll_directory(r"C:\Windows\System32")
+            d2xx = c.WinDLL("FTD2XX.dll")
+        except OSError as e:
+            pass
+        finally:
+            dll_dir.close()
+
+    if d2xx is None:
+        dll_dir = None
+        try:
+            dll_dir = os.add_dll_directory(r"C:\Windows\SysWOW64")
+            d2xx = c.WinDLL("FTD2XX.dll")
+        except OSError as e:
+            pass
+        finally:
+            dll_dir.close()
+
+    if d2xx is None:
+        raise FileNotFoundError("Unable to load FTD2XX.dll file for ftd2xx!")
 
 elif platform.system().startswith("Linux"):
     d2xx = c.cdll.LoadLibrary("libftd2xx.so")
