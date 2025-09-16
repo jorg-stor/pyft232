@@ -25,7 +25,10 @@ from serial import (FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS, PARITY_NONE,
                     PARITY_EVEN, PARITY_ODD, STOPBITS_ONE, STOPBITS_TWO)
 
 if platform.system().startswith("Windows"):
-    ftd2xx_filenames = ["ftd2xx.dll", "FTD2XX.DLL", "ftd2xx64.dll", "FTD2XX64.DLL"]
+    if platform.machine().endswith('64'):
+        ftd2xx_filenames = ["ftd2xx64.dll", "FTD2XX64.DLL"]
+    else:
+        ftd2xx_filenames = ["ftd2xx.dll", "FTD2XX.DLL"]
     for lib in ftd2xx_filenames:
         try:
             d2xx = c.WinDLL(lib)
