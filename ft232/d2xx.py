@@ -18,7 +18,6 @@
 #
 
 import platform
-import os
 import io
 import ctypes as c
 import serial
@@ -27,32 +26,18 @@ from serial import (FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS, PARITY_NONE,
 
 if platform.system().startswith("Windows"):
     try:
-        d2xx = c.WinDLL("FTD2XX.dll")
-    except OSError as e:
-        pass
-    
+        d2xx = c.windll.ftd2xx
+    except AttributeError:
+        d2xx = c.cdll.ftd2xx
     if d2xx is None:
-        dll_dir = None
-        try:
-            dll_dir = os.add_dll_directory(r"C:\Windows\System32")
-            d2xx = c.WinDLL("FTD2XX.dll")
-        except OSError as e:
-            pass
-        finally:
-            dll_dir.close()
+        raise FileNotFoundError("Unable to load ftd2xx.dll file for FTDI library")
 
-    if d2xx is None:
-        dll_dir = None
-        try:
-            dll_dir = os.add_dll_directory(r"C:\Windows\SysWOW64")
-            d2xx = c.WinDLL("FTD2XX.dll")
-        except OSError as e:
-            pass
-        finally:
-            dll_dir.close()
+elif platform.system().startswith("Linux"):
+    d2xx = c.cdll.LoadLibrary("libftd2xx.so")
+elif platform.system().startswith("Darwin"):
+    d2xx = c.cdll.LoadLibrary("libftd2xx.dylib")
 
-    if d2xx is None:
-        raise FileNotFoundError("Unable to load FTD2XX.dll file for ftd2xx!")
+
 
 elif platform.system().startswith("Linux"):
     d2xx = c.cdll.LoadLibrary("libftd2xx.so")
@@ -143,7 +128,7 @@ class D2xx(io.RawIOBase):
         self.snstr = port or serial_number
         self.descstr = description
         self.handle = c.c_void_p()
-        status = FT_INVALID_PARAMETER
+        status = 6
         if serial_number:
             serial = c.create_string_buffer(serial_number.encode())
             status = d2xx.FT_OpenEx(serial, FT_OPEN_BY_SERIAL_NUMBER,
